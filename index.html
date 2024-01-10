@@ -23,8 +23,9 @@
         <input
           id="rows-input"
           type="number"
-          min="100"
-          value="400"
+          min="10"
+          max="200"
+          value="100"
           style="width: 50px"
         />
       </span>
@@ -33,8 +34,9 @@
         <input
           id="columns-input"
           type="number"
-          min="100"
-          value="400"
+          min="10"
+          max="200"
+          value="100"
           style="width: 50px"
         />
       </span>
@@ -69,9 +71,9 @@
     var ctx = canvas.getContext("2d");
     var palying = true;
     var cells = [];
-
-    var rows = 400;
-    var columns = 400;
+    var size = 4;
+    var rows = 100;
+    var columns = 100;
     var fps = 30;
     var threshold = 0.1;
 
@@ -101,8 +103,8 @@
 
     function loop() {
       palying = true;
-      canvas.width = rows;
-      canvas.height = columns;
+      canvas.width = rows * size;
+      canvas.height = columns * size;
       var tick = Math.max(1, parseInt(1000 / fps));
 
       function run() {
@@ -116,7 +118,7 @@
     }
 
     function draw() {
-      ctx.clearRect(0, 0, rows, columns);
+      ctx.clearRect(0, 0, rows * size, columns * size);
       for (var i = 0; i < cells.length; i++) {
         for (var j = 0; j < cells[i].length; j++) {
           cells[i][j].checkState();
@@ -140,7 +142,7 @@
       draw() {
         if (this.alive) {
           ctx.fillStyle = "white";
-          ctx.fillRect(this.x, this.y, 1, 1);
+          ctx.fillRect(this.x * size, this.y * size, size, size);
         }
       }
 
