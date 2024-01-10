@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Conway's game of life</title>
+    <style>
+      canvas {
+        background: #000;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Conway's game of life</h1>
+    <p>
+      <button id="start">start</button>
+      <button id="pause">pause</button>
+      <button id="resume">resume</button>
+    </p>
+    <p>
+      <span>
+        <label for="rows-input">rows:</label>
+        <input
+          id="rows-input"
+          type="number"
+          min="100"
+          value="400"
+          style="width: 50px"
+        />
+      </span>
+      <span>
+        <label for="columns-input">columns:</label>
+        <input
+          id="columns-input"
+          type="number"
+          min="100"
+          value="400"
+          style="width: 50px"
+        />
+      </span>
+      <span>
+        <label for="fps-input">fps:</label>
+        <input
+          id="fps-input"
+          type="number"
+          min="1"
+          max="1000"
+          value="30"
+          style="width: 50px"
+        />
+      </span>
+      <span>
+        <label for="threshold-input">threshold:</label>
+        <input
+          id="threshold-input"
+          type="number"
+          min="0"
+          max="1"
+          step="0.01"
+          value="0.1"
+          style="width: 50px"
+        />
+      </span>
+    </p>
+    <canvas width="400" height="400"></canvas>
+  </body>
+  <script defer>
+    var canvas = document.querySelector("canvas");
+    var ctx = canvas.getContext("2d");
+    var palying = true;
+    var cells = [];
+
+    var rows = 400;
+    var columns = 400;
+    var fps = 30;
+    var threshold = 0.1;
+
+    function updateValue(all) {
+      fps = parseInt(document.querySelector("#fps-input").value);
+      if (all) {
+        rows = parseInt(document.querySelector("#rows-input").value);
+        columns = parseInt(document.querySelector("#columns-input").value);
+        threshold = parseFloat(
+          document.querySelector("#threshold-input").value
+        );
+      }
+    }
+
+    document.querySelector("#start").onclick = () => {
+      updateValue(true);
+      makeCells();
+      loop();
+    };
+    document.querySelector("#pause").onclick = () => {
+      palying = false;
+    };
+    document.querySelector("#resume").onclick = () => {
+      updateValue(false);
+      loop();
+    };
+
+    function loop() {
+      palying = true;
+      canvas.width = rows;
+      canvas.height = columns;
+      var tick = Math.max(1, parseInt(1000 / fps));
+
+      function run() {
+        if (!palying) {
+          return;
+        }
+        draw();
+        setTimeout(run, tick);
+      }
+      run();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, rows, columns);
+      for (var i = 0; i < cells.length; i++) {
+        for (var j = 0; j < cells[i].length; j++) {
+          cells[i][j].checkState();
+          cells[i][j].draw();
+        }
+      }
+    }
+
+    class Cell {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.alive = false;
+        this.nextState = false;
+
+        const state = Math.random() < threshold;
+        this.alive = state;
+        this.nextState = state;
+      }
+
+      draw() {
+        if (this.alive) {
+          ctx.fillStyle = "white";
+          ctx.fillRect(this.x, this.y, 1, 1);
+        }
+      }
+
+      checkState() {
+        this.alive = this.nextState;
+        this.nextState = this.alive;
+
+        var liveCount = this.liveNeighbors(cells);
+        if (this.alive) {
+          if (liveCount < 2) {
+            this.nextState = false;
+          } else if (liveCount === 2 || liveCount === 3) {
+            this.nextState = true;
+          } else if (liveCount > 3) {
+            this.nextState = false;
+          }
+        } else {
+          if (liveCount === 3) {
+            this.nextState = true;
+          }
+        }
+      }
+
+      liveNeighbors(cells) {
+        var liveCount = 0;
+
+        function add(x, y) {
+          if (x === cells.length) {
+            x = 0;
+          } else if (x === -1) {
+            x = cells.length - 1;
+          }
+          if (y === cells[x].length) {
+            y = 0;
+          } else if (y === -1) {
+            y = cells[x].length - 1;
+          }
+
+          if (cells[x][y].alive) {
+            liveCount++;
+          }
+        }
+
+        add(this.x - 1, this.y);
+        add(this.x + 1, this.y);
+        add(this.x, this.y + 1);
+        add(this.x, this.y - 1);
+        add(this.x - 1, this.y + 1);
+        add(this.x + 1, this.y + 1);
+        add(this.x - 1, this.y - 1);
+        add(this.x + 1, this.y - 1);
+
+        return liveCount;
+      }
+    }
+
+    function makeCells() {
+      cells = [];
+      for (var x = 0; x < rows; x++) {
+        const list = [];
+        for (var y = 0; y < columns; y++) {
+          const cell = new Cell(x, y);
+          cell.alive = Math.random() < threshold;
+          cell.nextState = cell.alive;
+          list.push(cell);
+        }
+        cells.push(list);
+      }
+    }
+
+    makeCells();
+    loop();
+  </script>
+</html>
